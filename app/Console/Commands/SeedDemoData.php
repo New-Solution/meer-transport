@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Companies\CreateCompany;
 use App\Enums\ContractStatus;
 use App\Enums\OrderStatus;
 use App\Enums\TripStatus;
@@ -21,7 +22,11 @@ use Illuminate\Support\Facades\DB;
 
 class SeedDemoData extends Command
 {
-    protected $signature = 'demo:seed {--email= : Email of the user whose company receives the data} {--fresh : Delete that company\'s existing data first}';
+    protected $signature = 'demo:seed
+        {--email= : Email of the user who should receive the data}
+        {--company= : Seed this specific company ID instead of resolving one from --email}
+        {--new-company= : Create a new company with this name (owned by --email) and seed it}
+        {--fresh : Delete the target company\'s existing data first}';
 
     protected $description = 'Seed realistic demo data (customers, trucks, drivers, contracts, orders) for a company';
 
@@ -37,10 +42,16 @@ class SeedDemoData extends Command
             return self::FAILURE;
         }
 
-        $company = $user->currentCompany ?? $user->ownedCompanies()->first();
+        if ($newCompanyName = $this->option('new-company')) {
+            $company = app(CreateCompany::class)->handle($user, $newCompanyName, isPersonal: false);
+        } elseif ($companyId = $this->option('company')) {
+            $company = Company::find($companyId);
+        } else {
+            $company = $user->currentCompany ?? $user->ownedCompanies()->first();
+        }
 
         if (! $company) {
-            $this->error('That user has no company.');
+            $this->error('No target company found.');
 
             return self::FAILURE;
         }
