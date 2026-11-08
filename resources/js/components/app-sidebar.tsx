@@ -7,7 +7,6 @@ import {
     LayoutGrid,
     MapPin,
     Settings as SettingsIcon,
-    Tag,
     Truck as TruckIcon,
     Users,
 } from 'lucide-react';
@@ -26,7 +25,6 @@ import { index as contractsIndex } from '@/routes/contracts';
 import { index as customersIndex } from '@/routes/customers';
 import { index as destinationsIndex } from '@/routes/destinations';
 import { index as driversIndex } from '@/routes/drivers';
-import { index as pricingIndex } from '@/routes/pricing';
 import { edit as editProfile } from '@/routes/profile';
 import { index as reportsIndex } from '@/routes/reports';
 import { index as transportOrdersIndex } from '@/routes/transport-orders';
@@ -85,13 +83,6 @@ export function AppSidebar() {
                 ? driversIndex({ current_company: companySlug })
                 : '/',
             icon: IdCard,
-        },
-        {
-            title: 'Pricing',
-            href: companySlug
-                ? pricingIndex({ current_company: companySlug })
-                : '/',
-            icon: Tag,
         },
         {
             title: 'Reports',
