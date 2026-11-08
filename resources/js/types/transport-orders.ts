@@ -1,11 +1,26 @@
 export type OrderStatus = 'DRAFT' | 'CONFIRMED' | 'CANCELLED';
 
+export type CargoDetails = {
+    description?: string;
+    quantity?: number;
+    unit?: string;
+    total_weight_kg?: number;
+};
+
 export type TransportOrderListItem = {
     id: number;
     order_number: string;
+    customer_po_number: string | null;
     customer_name: string;
+    customer_cr_number: string;
     order_date: string;
     required_delivery_date: string;
+    from_city: string;
+    to_city: string;
+    vehicle_type: string;
+    contract_number: string;
+    applied_price: number;
+    price_overridden: boolean;
     status: OrderStatus;
     trip_count: number;
     total_amount: number;
@@ -34,7 +49,17 @@ export type TripDetail = {
     driver_name: string | null;
     truck_amount: number;
     special_notes: string | null;
-    cargo_details: Record<string, unknown> | null;
+    cargo_details: CargoDetails | null;
+};
+
+export type OrderRouteSnapshot = {
+    from_city: string;
+    to_city: string;
+    destination_id: number | null;
+    destination_name: string | null;
+    destination_google_maps_url: string | null;
+    vehicle_type: string;
+    original_price_halalas: number;
 };
 
 export type TransportOrderDetail = {
@@ -47,7 +72,7 @@ export type TransportOrderDetail = {
     contract_id: number;
     contract_snapshot: { contract_number: string };
     contract_route_id: number;
-    route_snapshot: { from_city: string; to_city: string };
+    route_snapshot: OrderRouteSnapshot;
     customer_po_number: string | null;
     applied_price: number;
     price_overridden: boolean;
@@ -59,7 +84,7 @@ export type TransportOrderDetail = {
     additional_charges: AdditionalChargeDetail[];
     currency: string;
     status: OrderStatus;
-    cargo_details: Record<string, unknown> | null;
+    cargo_details: CargoDetails | null;
     loading_instructions: string | null;
     delivery_instructions: string | null;
     internal_remarks: string | null;
@@ -76,6 +101,7 @@ export type OrderRouteOption = {
     from_city: string;
     to_city: string;
     destination_id: number | null;
+    vehicle_type: string;
     price: number;
     return_price: number;
     stay_price: number;
@@ -95,15 +121,23 @@ export type OrderContractOption = {
 export type OrderCustomerOption = {
     id: number;
     name: string;
+    cr_number: string;
 };
 
 export type OrderTruckOption = {
     id: number;
     license_plate: string;
+    vehicle_type: string;
 };
 
 export type OrderDriverOption = {
     id: number;
     first_name: string;
     last_name: string;
+};
+
+export type OrderDestinationOption = {
+    id: number;
+    name: string;
+    google_maps_url: string;
 };

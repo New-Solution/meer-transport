@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\TransportOrders\CancelTransportOrder;
 use App\Actions\TransportOrders\ConfirmTransportOrder;
 use App\Actions\TransportOrders\CreateTransportOrder;
+use App\Actions\TransportOrders\GenerateOrderNumber;
 use App\Actions\TransportOrders\UpdateTransportOrder;
 use App\Enums\OrderStatus;
 use App\Http\Requests\TransportOrders\StoreTransportOrderRequest;
@@ -48,38 +49,58 @@ class TransportOrderController extends Controller
             });
         }
 
+        if ($fromDate = $request->string('from_date')->toString()) {
+            $query->whereDate('order_date', '>=', $fromDate);
+        }
+
+        if ($toDate = $request->string('to_date')->toString()) {
+            $query->whereDate('order_date', '<=', $toDate);
+        }
+
         $orders = $query->orderByDesc('order_date')->latest()->get();
 
         return Inertia::render('transport-orders/index', [
             'orders' => $orders->map(fn (TransportOrder $order) => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
+                'customer_po_number' => $order->customer_po_number,
                 'customer_name' => $order->customer_snapshot['name'],
+                'customer_cr_number' => $order->customer_snapshot['cr_number'],
                 'order_date' => $order->order_date->toDateString(),
                 'required_delivery_date' => $order->required_delivery_date->toDateString(),
+                'from_city' => $order->route_snapshot['from_city'],
+                'to_city' => $order->route_snapshot['to_city'],
+                'vehicle_type' => $order->route_snapshot['vehicle_type'],
+                'contract_number' => $order->contract_snapshot['contract_number'],
+                'applied_price' => $order->applied_price_halalas / 100,
+                'price_overridden' => $order->price_overridden,
                 'status' => $order->status->value,
                 'trip_count' => $order->trip_count,
                 'total_amount' => $order->total_amount_halalas / 100,
             ]),
+            'customers' => Customer::query()->active()->orderBy('name')->get(['id', 'name']),
             'filters' => [
                 'search' => $search ?: '',
                 'status' => $status ?: '',
                 'customerId' => $customerId ?: null,
+                'fromDate' => $fromDate ?: '',
+                'toDate' => $toDate ?: '',
             ],
         ]);
     }
 
-    public function create(Company $current_company): Response
+    public function create(Company $current_company, GenerateOrderNumber $generateOrderNumber): Response
     {
         Gate::authorize('create', TransportOrder::class);
 
         return Inertia::render('transport-orders/form', [
             'order' => null,
+            'suggestedOrderNumber' => $generateOrderNumber->handle($current_company->id),
             ...$this->formOptions(),
         ]);
     }
 
-    public function store(StoreTransportOrderRequest $request, Company $current_company, CreateTransportOrder $createOrder): RedirectResponse
+    public function store(StoreTransportOrderRequest $request, Company $current_company, CreateTransportOrder $createOrder, ConfirmTransportOrder $confirmOrder): RedirectResponse
     {
         $data = $request->safe()->except(['trips', 'additional_charges']);
         $contractRoute = ContractRoute::query()->whereKey($data['contract_route_id'])->firstOrFail();
@@ -91,6 +112,10 @@ class TransportOrderController extends Controller
                 $request->normalizedTrips(),
                 $request->user(),
             );
+
+            if ($request->boolean('confirm_now')) {
+                $confirmOrder->handle($order, $request->user());
+            }
         } catch (RuntimeException $e) {
             Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
 
@@ -125,7 +150,7 @@ class TransportOrderController extends Controller
         ]);
     }
 
-    public function update(UpdateTransportOrderRequest $request, Company $current_company, TransportOrder $transport_order, UpdateTransportOrder $updateOrder): RedirectResponse
+    public function update(UpdateTransportOrderRequest $request, Company $current_company, TransportOrder $transport_order, UpdateTransportOrder $updateOrder, ConfirmTransportOrder $confirmOrder): RedirectResponse
     {
         $data = $request->safe()->except(['trips', 'additional_charges']);
         $contractRoute = ContractRoute::query()->whereKey($data['contract_route_id'])->firstOrFail();
@@ -138,6 +163,10 @@ class TransportOrderController extends Controller
                 $request->normalizedTrips(),
                 $request->user(),
             );
+
+            if ($request->boolean('confirm_now')) {
+                $confirmOrder->handle($transport_order, $request->user());
+            }
         } catch (RuntimeException $e) {
             Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
 
@@ -210,7 +239,7 @@ class TransportOrderController extends Controller
     {
         return [
             'canOverridePrice' => Gate::allows('overridePrice', TransportOrder::class),
-            'customers' => Customer::query()->active()->orderBy('name')->get(['id', 'name']),
+            'customers' => Customer::query()->active()->orderBy('name')->get(['id', 'name', 'cr_number']),
             'contracts' => Contract::query()
                 ->eligibleForOrders()
                 ->with('routes')
@@ -226,6 +255,7 @@ class TransportOrderController extends Controller
                         'from_city' => $route->from_city,
                         'to_city' => $route->to_city,
                         'destination_id' => $route->destination_id,
+                        'vehicle_type' => $route->vehicle_type,
                         'price' => $route->price_halalas / 100,
                         'return_price' => $route->return_price_halalas / 100,
                         'stay_price' => $route->stay_price_halalas / 100,
@@ -233,8 +263,8 @@ class TransportOrderController extends Controller
                         'additional_price' => $route->additional_price_halalas / 100,
                     ]),
                 ]),
-            'destinations' => Destination::query()->orderBy('name')->get(['id', 'name']),
-            'trucks' => Truck::query()->orderBy('license_plate')->get(['id', 'license_plate']),
+            'destinations' => Destination::query()->orderBy('name')->get(['id', 'name', 'google_maps_url']),
+            'trucks' => Truck::query()->orderBy('license_plate')->get(['id', 'license_plate', 'vehicle_type']),
             'drivers' => Driver::query()->orderBy('first_name')->get(['id', 'first_name', 'last_name']),
         ];
     }

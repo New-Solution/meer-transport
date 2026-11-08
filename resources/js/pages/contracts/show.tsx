@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
+import { ContractStatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,16 +30,6 @@ import type { Company, ContractDetail } from '@/types';
 type Props = {
     contract: ContractDetail;
     currentCompany: Company;
-};
-
-const statusVariant: Record<
-    string,
-    'default' | 'secondary' | 'destructive' | 'outline'
-> = {
-    ACTIVE: 'default',
-    DRAFT: 'secondary',
-    EXPIRED: 'outline',
-    CANCELLED: 'destructive',
 };
 
 function formatSar(amount: number) {
@@ -91,11 +82,9 @@ export default function ContractShow({ contract, currentCompany }: Props) {
                     />
 
                     <div className="flex items-center gap-2">
-                        <Badge
-                            variant={statusVariant[contract.resolved_status]}
-                        >
-                            {contract.resolved_status}
-                        </Badge>
+                        <ContractStatusBadge
+                            status={contract.resolved_status}
+                        />
 
                         {contract.resolved_status === 'DRAFT' ? (
                             <>

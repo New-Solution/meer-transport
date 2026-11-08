@@ -7,20 +7,35 @@ use App\Http\Requests\Destinations\UpdateDestinationRequest;
 use App\Models\Company;
 use App\Models\Destination;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DestinationController extends Controller
 {
-    public function index(Company $current_company): Response
+    public function index(Request $request, Company $current_company): Response
     {
         Gate::authorize('viewAny', Destination::class);
 
+        $query = Destination::query();
+
+        if ($search = $request->string('search')->trim()->toString()) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
         return Inertia::render('destinations/index', [
-            'destinations' => Destination::query()
-                ->orderBy('name')
-                ->get(['id', 'name', 'google_maps_url']),
+            'destinations' => $query->orderBy('name')
+                ->get(['id', 'name', 'google_maps_url', 'created_at'])
+                ->map(fn (Destination $destination) => [
+                    'id' => $destination->id,
+                    'name' => $destination->name,
+                    'google_maps_url' => $destination->google_maps_url,
+                    'created_at' => $destination->created_at?->toDateString(),
+                ]),
+            'filters' => [
+                'search' => $search ?: '',
+            ],
         ]);
     }
 

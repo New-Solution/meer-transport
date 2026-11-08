@@ -46,6 +46,16 @@ class DriverController extends Controller
 
         return Inertia::render('drivers/index', [
             'drivers' => $query->latest()->get(),
+            'nationalityOptions' => Driver::query()
+                ->whereNotNull('nationality')
+                ->distinct()
+                ->orderBy('nationality')
+                ->pluck('nationality'),
+            'homeCityOptions' => Driver::query()
+                ->whereNotNull('home_city')
+                ->distinct()
+                ->orderBy('home_city')
+                ->pluck('home_city'),
             'filters' => [
                 'search' => $search ?: '',
                 'nationality' => $nationality ?: '',

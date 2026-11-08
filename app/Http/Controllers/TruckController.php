@@ -32,12 +32,28 @@ class TruckController extends Controller
             $query->where('license_plate', 'like', "%{$search}%");
         }
 
+        $external = $request->string('external')->toString();
+        if ($external === 'YES') {
+            $query->where('is_external', true);
+        } elseif ($external === 'NO') {
+            $query->where('is_external', false);
+        }
+
+        $internal = $request->string('internal')->toString();
+        if ($internal === 'YES') {
+            $query->where('is_internal', true);
+        } elseif ($internal === 'NO') {
+            $query->where('is_internal', false);
+        }
+
         return Inertia::render('trucks/index', [
             'trucks' => $query->latest()->get(),
             'filters' => [
                 'search' => $search ?: '',
                 'weightType' => $weightType ?: '',
                 'vehicleType' => $vehicleType ?: '',
+                'external' => $external ?: '',
+                'internal' => $internal ?: '',
             ],
         ]);
     }

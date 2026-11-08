@@ -4,6 +4,7 @@ export type ContractListItem = {
     id: number;
     contract_number: string;
     customer_name: string;
+    customer_cr_number: string;
     contract_date: string;
     expiry_date: string;
     status: ContractStatus;

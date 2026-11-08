@@ -48,6 +48,7 @@ class ContractController extends Controller
 
         return Inertia::render('contracts/index', [
             'contracts' => $contracts->map($this->toListItem(...)),
+            'customers' => Customer::query()->active()->orderBy('name')->get(['id', 'name']),
             'filters' => [
                 'search' => $search ?: '',
                 'status' => $status ?: '',
@@ -183,6 +184,7 @@ class ContractController extends Controller
             'id' => $contract->id,
             'contract_number' => $contract->contract_number,
             'customer_name' => $contract->customer_snapshot['name'],
+            'customer_cr_number' => $contract->customer_snapshot['cr_number'],
             'contract_date' => $contract->contract_date->toDateString(),
             'expiry_date' => $contract->expiry_date->toDateString(),
             'status' => $contract->resolvedStatus()->value,

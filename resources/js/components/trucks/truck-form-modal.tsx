@@ -134,10 +134,15 @@ export default function TruckFormModal({
                                 <Input
                                     id="license_plate"
                                     name="license_plate"
-                                    placeholder="e.g. 1234 ABC"
+                                    placeholder="e.g. ABC 1234 or أ ب ج ١٢٣٤"
                                     defaultValue={truck?.license_plate}
                                     required
+                                    className="font-mono"
                                 />
+                                <p className="text-xs text-muted-foreground">
+                                    Supports English and Arabic license plates.
+                                    Must be unique per company.
+                                </p>
                                 <InputError message={errors.license_plate} />
                             </div>
 
@@ -146,7 +151,9 @@ export default function TruckFormModal({
                                     <Checkbox
                                         id="is_internal"
                                         name="is_internal"
-                                        defaultChecked={truck?.is_internal}
+                                        defaultChecked={
+                                            truck?.is_internal ?? true
+                                        }
                                     />
                                     <Label
                                         htmlFor="is_internal"
@@ -161,7 +168,7 @@ export default function TruckFormModal({
                                         id="is_external"
                                         name="is_external"
                                         defaultChecked={
-                                            truck?.is_external ?? true
+                                            truck?.is_external ?? false
                                         }
                                     />
                                     <Label
