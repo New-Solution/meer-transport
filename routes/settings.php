@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Companies\CompanyController;
+use App\Http\Controllers\Companies\CompanyInvitationController;
+use App\Http\Controllers\Companies\CompanyMemberController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
-use App\Http\Controllers\Teams\TeamController;
-use App\Http\Controllers\Teams\TeamInvitationController;
-use App\Http\Controllers\Teams\TeamMemberController;
-use App\Http\Middleware\EnsureTeamMembership;
+use App\Http\Middleware\EnsureCompanyMembership;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -29,21 +29,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
 
-    Route::get('settings/teams', [TeamController::class, 'index'])->name('teams.index');
-    Route::post('settings/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::get('settings/companies', [CompanyController::class, 'index'])->name('companies.index');
+    Route::post('settings/companies', [CompanyController::class, 'store'])->name('companies.store');
 
-    Route::middleware(EnsureTeamMembership::class)->group(function () {
-        Route::get('settings/teams/{team}', [TeamController::class, 'edit'])->name('teams.edit');
-        Route::patch('settings/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
-        Route::delete('settings/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
-        Route::post('settings/teams/{team}/switch', [TeamController::class, 'switch'])->name('teams.switch');
-        Route::delete('settings/teams/{team}/leave', [TeamController::class, 'leave'])->name('teams.leave');
+    Route::middleware(EnsureCompanyMembership::class)->group(function () {
+        Route::get('settings/companies/{company}', [CompanyController::class, 'edit'])->name('companies.edit');
+        Route::patch('settings/companies/{company}', [CompanyController::class, 'update'])->name('companies.update');
+        Route::delete('settings/companies/{company}', [CompanyController::class, 'destroy'])->name('companies.destroy');
+        Route::post('settings/companies/{company}/switch', [CompanyController::class, 'switch'])->name('companies.switch');
+        Route::delete('settings/companies/{company}/leave', [CompanyController::class, 'leave'])->name('companies.leave');
 
-        Route::patch('settings/teams/{team}/members/{user}', [TeamMemberController::class, 'update'])->name('teams.members.update');
-        Route::delete('settings/teams/{team}/members/{user}', [TeamMemberController::class, 'destroy'])->name('teams.members.destroy');
+        Route::patch('settings/companies/{company}/members/{user}', [CompanyMemberController::class, 'update'])->name('companies.members.update');
+        Route::patch('settings/companies/{company}/members/{user}/business-role', [CompanyMemberController::class, 'updateBusinessRole'])->name('companies.members.updateBusinessRole');
+        Route::delete('settings/companies/{company}/members/{user}', [CompanyMemberController::class, 'destroy'])->name('companies.members.destroy');
 
-        Route::post('settings/teams/{team}/invitations', [TeamInvitationController::class, 'store'])->name('teams.invitations.store');
-        Route::delete('settings/teams/{team}/invitations/{invitation}', [TeamInvitationController::class, 'destroy'])->name('teams.invitations.destroy');
+        Route::post('settings/companies/{company}/invitations', [CompanyInvitationController::class, 'store'])->name('companies.invitations.store');
+        Route::delete('settings/companies/{company}/invitations/{invitation}', [CompanyInvitationController::class, 'destroy'])->name('companies.invitations.destroy');
     });
 });
 

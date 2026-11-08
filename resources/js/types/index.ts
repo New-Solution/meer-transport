@@ -1,4 +1,12 @@
 export type * from './auth';
 export type * from './navigation';
-export type * from './teams';
+export type * from './companies';
+export type * from './contracts';
+export type * from './customers';
+export type * from './dashboard';
+export type * from './destinations';
+export type * from './drivers';
+export type * from './reports';
+export type * from './transport-orders';
+export type * from './trucks';
 export type * from './ui';

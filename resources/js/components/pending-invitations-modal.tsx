@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
-import TeamInvitationController from '@/actions/App/Http/Controllers/Teams/TeamInvitationController';
+import CompanyInvitationController from '@/actions/App/Http/Controllers/Companies/CompanyInvitationController';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -25,14 +25,14 @@ export default function PendingInvitationsModal({
     const [processingCode, setProcessingCode] = useState<string | null>(null);
 
     const acceptInvitation = (invitation: DashboardInvitation) => {
-        router.visit(TeamInvitationController.accept(invitation), {
+        router.visit(CompanyInvitationController.accept(invitation), {
             onStart: () => setProcessingCode(invitation.code),
             onFinish: () => setProcessingCode(null),
         });
     };
 
     const declineInvitation = (invitation: DashboardInvitation) => {
-        router.visit(TeamInvitationController.decline(invitation), {
+        router.visit(CompanyInvitationController.decline(invitation), {
             onStart: () => setProcessingCode(invitation.code),
             onFinish: () => setProcessingCode(null),
             onSuccess: () => {
@@ -47,9 +47,9 @@ export default function PendingInvitationsModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent data-test="pending-invitations-modal">
                 <DialogHeader>
-                    <DialogTitle>Pending team invitations</DialogTitle>
+                    <DialogTitle>Pending company invitations</DialogTitle>
                     <DialogDescription>
-                        Accept or decline the teams you have been invited to
+                        Accept or decline the companies you have been invited to
                         join.
                     </DialogDescription>
                 </DialogHeader>
@@ -63,11 +63,11 @@ export default function PendingInvitationsModal({
                         >
                             <div className="space-y-1">
                                 <p className="font-medium">
-                                    {invitation.team.name}
+                                    {invitation.company.name}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     {invitation.inviterName} invited you to join
-                                    this team.
+                                    this company.
                                 </p>
                             </div>
 
