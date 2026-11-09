@@ -32,6 +32,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import {
     activate,
@@ -65,6 +66,7 @@ export default function ContractsIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(
         null,
@@ -144,11 +146,17 @@ export default function ContractsIndex({
                         description="Manage customer transportation contracts and agreed route pricing."
                     />
 
-                    <Button asChild data-test="contracts-new-button">
-                        <Link href={create({ current_company: companySlug })}>
-                            <Plus className="h-4 w-4" /> Create Contract
-                        </Link>
-                    </Button>
+                    {can('contracts:create') ? (
+                        <Button asChild data-test="contracts-new-button">
+                            <Link
+                                href={create({
+                                    current_company: companySlug,
+                                })}
+                            >
+                                <Plus className="h-4 w-4" /> Create Contract
+                            </Link>
+                        </Button>
+                    ) : null}
                 </div>
 
                 <div className="rounded-xl border">
@@ -352,81 +360,101 @@ export default function ContractsIndex({
                                                     {contract.status ===
                                                     'DRAFT' ? (
                                                         <>
-                                                            <Link
-                                                                href={edit({
-                                                                    current_company:
-                                                                        companySlug,
-                                                                    contract:
-                                                                        contract.id,
-                                                                })}
-                                                                title="Edit Draft"
-                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                                                            >
-                                                                <Pencil className="h-3.5 w-3.5" />
-                                                            </Link>
-                                                            <button
-                                                                type="button"
-                                                                title="Activate Contract"
-                                                                onClick={() =>
-                                                                    setConfirmAction(
-                                                                        {
-                                                                            type: 'activate',
-                                                                            contract,
-                                                                        },
-                                                                    )
-                                                                }
-                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400"
-                                                            >
-                                                                <CheckCircle className="h-3.5 w-3.5" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                title="Delete Draft"
-                                                                onClick={() =>
-                                                                    setConfirmAction(
-                                                                        {
-                                                                            type: 'delete',
-                                                                            contract,
-                                                                        },
-                                                                    )
-                                                                }
-                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                            >
-                                                                <Trash2 className="h-3.5 w-3.5" />
-                                                            </button>
+                                                            {can(
+                                                                'contracts:edit',
+                                                            ) ? (
+                                                                <Link
+                                                                    href={edit({
+                                                                        current_company:
+                                                                            companySlug,
+                                                                        contract:
+                                                                            contract.id,
+                                                                    })}
+                                                                    title="Edit Draft"
+                                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                </Link>
+                                                            ) : null}
+                                                            {can(
+                                                                'contracts:edit',
+                                                            ) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    title="Activate Contract"
+                                                                    onClick={() =>
+                                                                        setConfirmAction(
+                                                                            {
+                                                                                type: 'activate',
+                                                                                contract,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400"
+                                                                >
+                                                                    <CheckCircle className="h-3.5 w-3.5" />
+                                                                </button>
+                                                            ) : null}
+                                                            {can(
+                                                                'contracts:delete',
+                                                            ) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    title="Delete Draft"
+                                                                    onClick={() =>
+                                                                        setConfirmAction(
+                                                                            {
+                                                                                type: 'delete',
+                                                                                contract,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
+                                                                >
+                                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                                </button>
+                                                            ) : null}
                                                         </>
                                                     ) : null}
 
                                                     {contract.status ===
                                                     'ACTIVE' ? (
                                                         <>
-                                                            <Link
-                                                                href={edit({
-                                                                    current_company:
-                                                                        companySlug,
-                                                                    contract:
-                                                                        contract.id,
-                                                                })}
-                                                                title="Edit Contract & Routes"
-                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                                                            >
-                                                                <Pencil className="h-3.5 w-3.5" />
-                                                            </Link>
-                                                            <button
-                                                                type="button"
-                                                                title="Cancel Contract (Preserve History)"
-                                                                onClick={() =>
-                                                                    setConfirmAction(
-                                                                        {
-                                                                            type: 'cancel',
-                                                                            contract,
-                                                                        },
-                                                                    )
-                                                                }
-                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/60 dark:hover:text-amber-400"
-                                                            >
-                                                                <Ban className="h-3.5 w-3.5" />
-                                                            </button>
+                                                            {can(
+                                                                'contracts:edit',
+                                                            ) ? (
+                                                                <Link
+                                                                    href={edit({
+                                                                        current_company:
+                                                                            companySlug,
+                                                                        contract:
+                                                                            contract.id,
+                                                                    })}
+                                                                    title="Edit Contract & Routes"
+                                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                                >
+                                                                    <Pencil className="h-3.5 w-3.5" />
+                                                                </Link>
+                                                            ) : null}
+                                                            {can(
+                                                                'contracts:edit',
+                                                            ) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    title="Cancel Contract (Preserve History)"
+                                                                    onClick={() =>
+                                                                        setConfirmAction(
+                                                                            {
+                                                                                type: 'cancel',
+                                                                                contract,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/60 dark:hover:text-amber-400"
+                                                                >
+                                                                    <Ban className="h-3.5 w-3.5" />
+                                                                </button>
+                                                            ) : null}
                                                         </>
                                                     ) : null}
                                                 </div>

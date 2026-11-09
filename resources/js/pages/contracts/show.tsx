@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import {
     activate,
@@ -41,6 +42,7 @@ function formatSar(amount: number) {
 
 export default function ContractShow({ contract, currentCompany }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [cancelOpen, setCancelOpen] = useState(false);
     const [reason, setReason] = useState('');
 
@@ -88,54 +90,68 @@ export default function ContractShow({ contract, currentCompany }: Props) {
 
                         {contract.resolved_status === 'DRAFT' ? (
                             <>
-                                <Button variant="secondary" asChild>
-                                    <Link
-                                        href={edit({
-                                            current_company: companySlug,
-                                            contract: contract.id,
-                                        })}
+                                {can('contracts:edit') ? (
+                                    <Button variant="secondary" asChild>
+                                        <Link
+                                            href={edit({
+                                                current_company: companySlug,
+                                                contract: contract.id,
+                                            })}
+                                        >
+                                            <Pencil className="h-4 w-4" /> Edit
+                                        </Link>
+                                    </Button>
+                                ) : null}
+                                {can('contracts:edit') ? (
+                                    <Button onClick={doActivate}>
+                                        Activate
+                                    </Button>
+                                ) : null}
+                                {can('contracts:delete') ? (
+                                    <Button
+                                        variant="destructive"
+                                        onClick={doDelete}
                                     >
-                                        <Pencil className="h-4 w-4" /> Edit
-                                    </Link>
-                                </Button>
-                                <Button onClick={doActivate}>Activate</Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={doDelete}
-                                >
-                                    Delete
-                                </Button>
+                                        Delete
+                                    </Button>
+                                ) : null}
                             </>
                         ) : null}
 
                         {contract.resolved_status === 'ACTIVE' ? (
                             <>
-                                <Button variant="secondary" asChild>
-                                    <Link
-                                        href={edit({
-                                            current_company: companySlug,
-                                            contract: contract.id,
-                                        })}
+                                {can('contracts:edit') ? (
+                                    <Button variant="secondary" asChild>
+                                        <Link
+                                            href={edit({
+                                                current_company: companySlug,
+                                                contract: contract.id,
+                                            })}
+                                        >
+                                            <Pencil className="h-4 w-4" /> Edit
+                                        </Link>
+                                    </Button>
+                                ) : null}
+                                {can('contracts:edit') ? (
+                                    <Button
+                                        variant="destructive"
+                                        onClick={() => setCancelOpen(true)}
                                     >
-                                        <Pencil className="h-4 w-4" /> Edit
-                                    </Link>
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={() => setCancelOpen(true)}
-                                >
-                                    Cancel contract
-                                </Button>
+                                        Cancel contract
+                                    </Button>
+                                ) : null}
                             </>
                         ) : null}
 
-                        {!contract.archived_at ? (
-                            <Button variant="outline" onClick={doArchive}>
-                                Archive
-                            </Button>
-                        ) : (
-                            <Badge variant="secondary">Archived</Badge>
-                        )}
+                        {can('contracts:edit') ? (
+                            !contract.archived_at ? (
+                                <Button variant="outline" onClick={doArchive}>
+                                    Archive
+                                </Button>
+                            ) : (
+                                <Badge variant="secondary">Archived</Badge>
+                            )
+                        ) : null}
                     </div>
                 </div>
 

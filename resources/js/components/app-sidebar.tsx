@@ -21,6 +21,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { index as contractsIndex } from '@/routes/contracts';
 import { index as customersIndex } from '@/routes/customers';
@@ -37,63 +38,64 @@ export function AppSidebar() {
     const page = usePage();
     const companySlug = page.props.currentCompany?.slug;
     const dashboardUrl = companySlug ? dashboard(companySlug) : '/';
+    const { can } = usePermissions();
 
-    const mainNavItems: NavItem[] = [
+    const rawNavItems: (NavItem | false)[] = [
         {
             title: 'Dashboard',
             href: dashboardUrl,
             icon: LayoutGrid,
         },
-        {
+        can('contracts:view') && {
             title: 'Contracts',
             href: companySlug
                 ? contractsIndex({ current_company: companySlug })
                 : '/',
             icon: FileText,
         },
-        {
+        can('customers:view') && {
             title: 'Customers',
             href: companySlug
                 ? customersIndex({ current_company: companySlug })
                 : '/',
             icon: Users,
         },
-        {
+        can('orders:view') && {
             title: 'Transport Orders',
             href: companySlug
                 ? transportOrdersIndex({ current_company: companySlug })
                 : '/',
             icon: ClipboardList,
         },
-        {
+        can('trucks:view') && {
             title: 'Trucks',
             href: companySlug
                 ? trucksIndex({ current_company: companySlug })
                 : '/',
             icon: TruckIcon,
         },
-        {
+        can('drivers:view') && {
             title: 'Drivers',
             href: companySlug
                 ? driversIndex({ current_company: companySlug })
                 : '/',
             icon: IdCard,
         },
-        {
+        can('destinations:view') && {
             title: 'Destinations',
             href: companySlug
                 ? destinationsIndex({ current_company: companySlug })
                 : '/',
             icon: MapPin,
         },
-        {
+        can('pricing:manage') && {
             title: 'Pricing',
             href: companySlug
                 ? pricingIndex({ current_company: companySlug })
                 : '/',
             icon: Tag,
         },
-        {
+        can('reports:view') && {
             title: 'Reports',
             href: companySlug
                 ? reportsIndex({ current_company: companySlug })
@@ -106,6 +108,10 @@ export function AppSidebar() {
             icon: SettingsIcon,
         },
     ];
+
+    const mainNavItems: NavItem[] = rawNavItems.filter(
+        (item): item is NavItem => Boolean(item),
+    );
 
     return (
         <Sidebar collapsible="icon">

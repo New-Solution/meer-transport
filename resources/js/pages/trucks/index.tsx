@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { index } from '@/routes/trucks';
 import type { Company, Truck } from '@/types';
@@ -51,6 +52,7 @@ export default function TrucksIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search);
 
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -86,11 +88,13 @@ export default function TrucksIndex({
                         description="Manage your fleet of trucks, tankers, lorries, and dyanas."
                     />
 
-                    <TruckFormModal companySlug={companySlug}>
-                        <Button data-test="trucks-new-button">
-                            <Plus className="h-4 w-4" /> Add Truck
-                        </Button>
-                    </TruckFormModal>
+                    {can('trucks:create') ? (
+                        <TruckFormModal companySlug={companySlug}>
+                            <Button data-test="trucks-new-button">
+                                <Plus className="h-4 w-4" /> Add Truck
+                            </Button>
+                        </TruckFormModal>
+                    ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 rounded-xl border p-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -256,29 +260,35 @@ export default function TrucksIndex({
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="inline-flex items-center gap-1">
-                                                <TruckFormModal
-                                                    companySlug={companySlug}
-                                                    truck={truck}
-                                                >
+                                                {can('trucks:edit') ? (
+                                                    <TruckFormModal
+                                                        companySlug={
+                                                            companySlug
+                                                        }
+                                                        truck={truck}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            title="Edit Truck"
+                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                        >
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </TruckFormModal>
+                                                ) : null}
+
+                                                {can('trucks:delete') ? (
                                                     <button
                                                         type="button"
-                                                        title="Edit Truck"
-                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                        title="Delete Truck"
+                                                        onClick={() =>
+                                                            openDelete(truck)
+                                                        }
+                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
                                                     >
-                                                        <Pencil className="h-3.5 w-3.5" />
+                                                        <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
-                                                </TruckFormModal>
-
-                                                <button
-                                                    type="button"
-                                                    title="Delete Truck"
-                                                    onClick={() =>
-                                                        openDelete(truck)
-                                                    }
-                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
+                                                ) : null}
                                             </div>
                                         </td>
                                     </tr>

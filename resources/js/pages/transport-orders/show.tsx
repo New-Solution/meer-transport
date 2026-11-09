@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import {
     cancel,
@@ -48,6 +49,7 @@ function formatSar(amount: number) {
 
 export default function TransportOrderShow({ order, currentCompany }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [cancelOpen, setCancelOpen] = useState(false);
     const [reason, setReason] = useState('');
 
@@ -95,27 +97,34 @@ export default function TransportOrderShow({ order, currentCompany }: Props) {
 
                         {order.status === 'DRAFT' ? (
                             <>
-                                <Button variant="secondary" asChild>
-                                    <Link
-                                        href={edit({
-                                            current_company: companySlug,
-                                            transport_order: order.id,
-                                        })}
+                                {can('orders:edit') ? (
+                                    <Button variant="secondary" asChild>
+                                        <Link
+                                            href={edit({
+                                                current_company: companySlug,
+                                                transport_order: order.id,
+                                            })}
+                                        >
+                                            <Pencil className="h-4 w-4" /> Edit
+                                        </Link>
+                                    </Button>
+                                ) : null}
+                                {can('orders:edit') ? (
+                                    <Button onClick={doConfirm}>Confirm</Button>
+                                ) : null}
+                                {can('orders:delete') ? (
+                                    <Button
+                                        variant="destructive"
+                                        onClick={doDelete}
                                     >
-                                        <Pencil className="h-4 w-4" /> Edit
-                                    </Link>
-                                </Button>
-                                <Button onClick={doConfirm}>Confirm</Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={doDelete}
-                                >
-                                    Delete
-                                </Button>
+                                        Delete
+                                    </Button>
+                                ) : null}
                             </>
                         ) : null}
 
-                        {order.status !== 'CANCELLED' ? (
+                        {order.status !== 'CANCELLED' &&
+                        can('orders:cancel') ? (
                             <Button
                                 variant="destructive"
                                 onClick={() => setCancelOpen(true)}

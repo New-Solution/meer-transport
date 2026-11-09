@@ -13,6 +13,7 @@ import DestinationFormModal from '@/components/destinations/destination-form-mod
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { index } from '@/routes/destinations';
 import type { Company, Destination } from '@/types';
@@ -29,6 +30,7 @@ export default function DestinationsIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search);
 
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -58,11 +60,13 @@ export default function DestinationsIndex({
                         description="Manage delivery hubs, industrial yards, and specific drop-off locations with Google Maps navigation."
                     />
 
-                    <DestinationFormModal companySlug={companySlug}>
-                        <Button data-test="destinations-new-button">
-                            <Plus className="h-4 w-4" /> Add Destination
-                        </Button>
-                    </DestinationFormModal>
+                    {can('destinations:create') ? (
+                        <DestinationFormModal companySlug={companySlug}>
+                            <Button data-test="destinations-new-button">
+                                <Plus className="h-4 w-4" /> Add Destination
+                            </Button>
+                        </DestinationFormModal>
+                    ) : null}
                 </div>
 
                 <div className="relative max-w-md">
@@ -146,35 +150,43 @@ export default function DestinationsIndex({
                                             </td>
                                             <td className="px-6 py-3.5 text-right">
                                                 <div className="inline-flex items-center gap-1">
-                                                    <DestinationFormModal
-                                                        companySlug={
-                                                            companySlug
-                                                        }
-                                                        destination={
-                                                            destination
-                                                        }
-                                                    >
+                                                    {can(
+                                                        'destinations:edit',
+                                                    ) ? (
+                                                        <DestinationFormModal
+                                                            companySlug={
+                                                                companySlug
+                                                            }
+                                                            destination={
+                                                                destination
+                                                            }
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                title="Edit Destination"
+                                                                className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </button>
+                                                        </DestinationFormModal>
+                                                    ) : null}
+
+                                                    {can(
+                                                        'destinations:delete',
+                                                    ) ? (
                                                         <button
                                                             type="button"
-                                                            title="Edit Destination"
-                                                            className="rounded-md p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            title="Delete Destination"
+                                                            onClick={() =>
+                                                                openDelete(
+                                                                    destination,
+                                                                )
+                                                            }
+                                                            className="rounded-md p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
                                                         >
-                                                            <Pencil className="h-4 w-4" />
+                                                            <Trash2 className="h-4 w-4" />
                                                         </button>
-                                                    </DestinationFormModal>
-
-                                                    <button
-                                                        type="button"
-                                                        title="Delete Destination"
-                                                        onClick={() =>
-                                                            openDelete(
-                                                                destination,
-                                                            )
-                                                        }
-                                                        className="rounded-md p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                         </tr>

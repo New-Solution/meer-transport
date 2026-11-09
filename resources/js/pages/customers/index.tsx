@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { archive, index, restore } from '@/routes/customers';
 import type { Company, Customer } from '@/types';
@@ -32,6 +33,7 @@ export default function CustomersIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
 
     const [search, setSearch] = useState(filters.search);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -73,11 +75,13 @@ export default function CustomersIndex({
                         description="Manage transportation customers and company information."
                     />
 
-                    <CustomerFormModal companySlug={companySlug}>
-                        <Button data-test="customers-new-button">
-                            <Plus className="h-4 w-4" /> Add Customer
-                        </Button>
-                    </CustomerFormModal>
+                    {can('customers:create') ? (
+                        <CustomerFormModal companySlug={companySlug}>
+                            <Button data-test="customers-new-button">
+                                <Plus className="h-4 w-4" /> Add Customer
+                            </Button>
+                        </CustomerFormModal>
+                    ) : null}
                 </div>
 
                 <div className="rounded-xl border">
@@ -182,52 +186,60 @@ export default function CustomersIndex({
                                             </td>
                                             <td className="px-4 py-3.5 text-right">
                                                 <div className="inline-flex items-center gap-1">
-                                                    <CustomerFormModal
-                                                        companySlug={
-                                                            companySlug
-                                                        }
-                                                        customer={customer}
-                                                    >
+                                                    {can('customers:edit') ? (
+                                                        <CustomerFormModal
+                                                            companySlug={
+                                                                companySlug
+                                                            }
+                                                            customer={customer}
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                title="Edit Customer"
+                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            >
+                                                                <Pencil className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </CustomerFormModal>
+                                                    ) : null}
+
+                                                    {can('customers:edit') ? (
                                                         <button
                                                             type="button"
-                                                            title="Edit Customer"
-                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            title={
+                                                                customer.archived_at
+                                                                    ? 'Restore Customer'
+                                                                    : 'Archive Customer'
+                                                            }
+                                                            onClick={() =>
+                                                                toggleArchive(
+                                                                    customer,
+                                                                )
+                                                            }
+                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/60 dark:hover:text-amber-400"
                                                         >
-                                                            <Pencil className="h-3.5 w-3.5" />
+                                                            {customer.archived_at ? (
+                                                                <ArchiveRestore className="h-3.5 w-3.5" />
+                                                            ) : (
+                                                                <Archive className="h-3.5 w-3.5" />
+                                                            )}
                                                         </button>
-                                                    </CustomerFormModal>
+                                                    ) : null}
 
-                                                    <button
-                                                        type="button"
-                                                        title={
-                                                            customer.archived_at
-                                                                ? 'Restore Customer'
-                                                                : 'Archive Customer'
-                                                        }
-                                                        onClick={() =>
-                                                            toggleArchive(
-                                                                customer,
-                                                            )
-                                                        }
-                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/60 dark:hover:text-amber-400"
-                                                    >
-                                                        {customer.archived_at ? (
-                                                            <ArchiveRestore className="h-3.5 w-3.5" />
-                                                        ) : (
-                                                            <Archive className="h-3.5 w-3.5" />
-                                                        )}
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        title="Delete Customer"
-                                                        onClick={() =>
-                                                            openDelete(customer)
-                                                        }
-                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </button>
+                                                    {can('customers:delete') ? (
+                                                        <button
+                                                            type="button"
+                                                            title="Delete Customer"
+                                                            onClick={() =>
+                                                                openDelete(
+                                                                    customer,
+                                                                )
+                                                            }
+                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                         </tr>

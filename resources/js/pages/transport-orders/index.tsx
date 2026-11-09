@@ -31,6 +31,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import {
     cancel,
@@ -79,6 +80,7 @@ export default function TransportOrdersIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search);
     const [action, setAction] = useState<ConfirmAction | null>(null);
     const [cancelReason, setCancelReason] = useState('');
@@ -159,11 +161,17 @@ export default function TransportOrdersIndex({
                         description="Manage multi-trip execution orders linked to approved customer contracts and routes."
                     />
 
-                    <Button asChild data-test="orders-new-button">
-                        <Link href={create({ current_company: companySlug })}>
-                            <Plus className="h-4 w-4" /> New Transport Order
-                        </Link>
-                    </Button>
+                    {can('orders:create') ? (
+                        <Button asChild data-test="orders-new-button">
+                            <Link
+                                href={create({
+                                    current_company: companySlug,
+                                })}
+                            >
+                                <Plus className="h-4 w-4" /> New Transport Order
+                            </Link>
+                        </Button>
+                    ) : null}
                 </div>
 
                 <div className="space-y-3 rounded-xl border p-4">
@@ -422,49 +430,57 @@ export default function TransportOrdersIndex({
 
                                                 {order.status === 'DRAFT' ? (
                                                     <>
-                                                        <Link
-                                                            href={edit({
-                                                                current_company:
-                                                                    companySlug,
-                                                                transport_order:
-                                                                    order.id,
-                                                            })}
-                                                            title="Edit Draft Order"
-                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                                                        >
-                                                            <Pencil className="h-3.5 w-3.5" />
-                                                        </Link>
-                                                        <button
-                                                            type="button"
-                                                            title="Confirm Order"
-                                                            onClick={() =>
-                                                                setAction({
-                                                                    type: 'confirm',
-                                                                    order,
-                                                                })
-                                                            }
-                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400"
-                                                        >
-                                                            <CheckCircle2 className="h-3.5 w-3.5" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            title="Delete Draft"
-                                                            onClick={() =>
-                                                                setAction({
-                                                                    type: 'delete',
-                                                                    order,
-                                                                })
-                                                            }
-                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                        >
-                                                            <Trash2 className="h-3.5 w-3.5" />
-                                                        </button>
+                                                        {can('orders:edit') ? (
+                                                            <Link
+                                                                href={edit({
+                                                                    current_company:
+                                                                        companySlug,
+                                                                    transport_order:
+                                                                        order.id,
+                                                                })}
+                                                                title="Edit Draft Order"
+                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                            >
+                                                                <Pencil className="h-3.5 w-3.5" />
+                                                            </Link>
+                                                        ) : null}
+                                                        {can('orders:edit') ? (
+                                                            <button
+                                                                type="button"
+                                                                title="Confirm Order"
+                                                                onClick={() =>
+                                                                    setAction({
+                                                                        type: 'confirm',
+                                                                        order,
+                                                                    })
+                                                                }
+                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400"
+                                                            >
+                                                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        ) : null}
+                                                        {can(
+                                                            'orders:delete',
+                                                        ) ? (
+                                                            <button
+                                                                type="button"
+                                                                title="Delete Draft"
+                                                                onClick={() =>
+                                                                    setAction({
+                                                                        type: 'delete',
+                                                                        order,
+                                                                    })
+                                                                }
+                                                                className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        ) : null}
                                                     </>
                                                 ) : null}
 
-                                                {order.status ===
-                                                'CONFIRMED' ? (
+                                                {order.status === 'CONFIRMED' &&
+                                                can('orders:cancel') ? (
                                                     <button
                                                         type="button"
                                                         title="Cancel Confirmed Order"

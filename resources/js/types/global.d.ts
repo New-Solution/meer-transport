@@ -15,6 +15,7 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             currentCompany: Company | null;
             companies: Company[];
+            businessPermissions: string[];
             [key: string]: unknown;
         };
     }

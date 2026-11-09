@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { index } from '@/routes/drivers';
 import type { Company, Driver } from '@/types';
@@ -101,6 +102,7 @@ export default function DriversIndex({
     currentCompany,
 }: Props) {
     const companySlug = currentCompany.slug;
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search);
 
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -152,11 +154,13 @@ export default function DriversIndex({
                         description="Manage heavy vehicle driver profiles, driving license validities, and Iqama documentation."
                     />
 
-                    <DriverFormModal companySlug={companySlug}>
-                        <Button data-test="drivers-new-button">
-                            <Plus className="h-4 w-4" /> Add Driver
-                        </Button>
-                    </DriverFormModal>
+                    {can('drivers:create') ? (
+                        <DriverFormModal companySlug={companySlug}>
+                            <Button data-test="drivers-new-button">
+                                <Plus className="h-4 w-4" /> Add Driver
+                            </Button>
+                        </DriverFormModal>
+                    ) : null}
                 </div>
 
                 <div className="space-y-3 rounded-xl border p-4">
@@ -411,29 +415,35 @@ export default function DriversIndex({
                                         </td>
                                         <td className="px-4 py-3 text-right whitespace-nowrap">
                                             <div className="inline-flex items-center gap-1">
-                                                <DriverFormModal
-                                                    companySlug={companySlug}
-                                                    driver={driver}
-                                                >
+                                                {can('drivers:edit') ? (
+                                                    <DriverFormModal
+                                                        companySlug={
+                                                            companySlug
+                                                        }
+                                                        driver={driver}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            title="Edit Driver"
+                                                            className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                        >
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </DriverFormModal>
+                                                ) : null}
+
+                                                {can('drivers:delete') ? (
                                                     <button
                                                         type="button"
-                                                        title="Edit Driver"
-                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                                        title="Delete Driver"
+                                                        onClick={() =>
+                                                            openDelete(driver)
+                                                        }
+                                                        className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
                                                     >
-                                                        <Pencil className="h-3.5 w-3.5" />
+                                                        <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
-                                                </DriverFormModal>
-
-                                                <button
-                                                    type="button"
-                                                    title="Delete Driver"
-                                                    onClick={() =>
-                                                        openDelete(driver)
-                                                    }
-                                                    className="rounded-lg p-1.5 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/60 dark:hover:text-rose-400"
-                                                >
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </button>
+                                                ) : null}
                                             </div>
                                         </td>
                                     </tr>

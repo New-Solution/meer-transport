@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\BusinessPermission;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -46,6 +47,12 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentCompany' => fn () => $user?->currentCompany ? $user->toUserCompany($user->currentCompany) : null,
             'companies' => fn () => $user?->toUserCompanies(includeCurrent: true) ?? [],
+            'businessPermissions' => fn () => $user?->currentCompany
+                ? array_map(
+                    fn (BusinessPermission $permission) => $permission->value,
+                    $user->businessRole($user->currentCompany)?->permissions() ?? [],
+                )
+                : [],
         ];
     }
 }
